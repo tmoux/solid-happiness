@@ -15,10 +15,6 @@ open import Preservation
 data Stuck (t : CTerm) : Set where
   is-stuck : ¬ (∃[ t' ](t ~> t')) → ¬ value t → Stuck t
 
--- Need to define transitive closure of ~>
-data _~>*_ : CTerm → CTerm → Set where
-  ~>-refl : ∀ {t : CTerm} → t ~>* t
-  ~>-trans : ∀ {x y z : CTerm} → x ~> y → y ~>* z → x ~>* z
 
 
 -- Here is the main soundness result.
