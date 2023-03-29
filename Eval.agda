@@ -17,4 +17,4 @@ eval : ∀ {T} → ℕ → (t : CTerm) → ∅ ⊢ t ∈ T → Finished
 eval zero t Ht = out-of-gas
 eval {T} (suc gas) t Ht with progress T t Ht
 ... | inj₁ val-t = done val-t
-... | inj₂ (t' , t~>t') = eval gas t' (preservation t t' T Ht t~>t')
+... | inj₂ (t' , t~>t') = eval gas t' (preservation Ht t~>t')

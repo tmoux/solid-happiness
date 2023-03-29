@@ -46,3 +46,6 @@ data _⊢_∈_ : (Γ : Context) → Term Γ → Typ → Set where
            (Γ , S) ⊢ t ∈ T →
            Γ ⊢ (ƛ {Γ} {S} t) ∈ (S ⇒ T)
 
+
+⊢_∈_ : CTerm → Typ → Set
+⊢ t ∈ T = ∅ ⊢ t ∈ T

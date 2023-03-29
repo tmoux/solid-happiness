@@ -72,3 +72,35 @@ subst-lemma : ∀ {Γ A T t v} →
   Γ ⊢ (t [ v ]) ∈ T
 subst-lemma {Γ} {B} {T} {t} {v} H1 H2 =
   substs-lemma (subst-zero v) (subst-zero-preserves-types H2) H1
+
+
+
+module IdSubst where
+  open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl)
+  id-subst : ∀ {Γ A} → Γ ∋ A → Term Γ
+  id-subst x = var x
+
+  exts-id≡id : ∀ {Γ A T} → (x : (Γ , A) ∋ T) → exts id-subst x ≡ id-subst x
+  exts-id≡id Z = refl
+  exts-id≡id (S x) = refl
+
+  -- If two substitutions are pointwise equal, then their substitutions are pointwise equal
+  -- We use this mainly to get around using function extensionality.
+  subst-pointwise : ∀ {Γ} {σ₁ σ₂ : ∀ {A} → Γ ∋ A → Term Γ} →
+    (∀ {T} → (x : Γ ∋ T) → σ₁ x ≡ σ₂ x) →
+    (∀ (t : Term Γ) → subst σ₁ t ≡ subst σ₂ t)
+  subst-pointwise Hσ (var x) = Hσ x
+  subst-pointwise {Γ} {σ₁} {σ₂} Hσ (ƛ t) = Eq.cong ƛ (f t)
+    where f : ∀ {A} →
+              ∀ (t : Term (Γ , A)) → subst (exts σ₁) t ≡ subst (exts σ₂) t
+          f = subst-pointwise (λ { Z → refl ; (S x) → Eq.cong (rename S_) (Hσ x)})
+  subst-pointwise Hσ (t₁ $ t₂) rewrite subst-pointwise Hσ t₁ | subst-pointwise Hσ t₂ = refl
+
+  subst-exts≡id : ∀ {Γ A} → ∀ (t : Term (Γ , A)) → subst (exts id-subst) t ≡ subst id-subst t
+  subst-exts≡id = subst-pointwise exts-id≡id
+
+  -- This was...surprisingly nontrivial.
+  id-subst-id : ∀ {Γ} → ∀ (t : Term Γ) → subst id-subst t ≡ t
+  id-subst-id (var x) = refl
+  id-subst-id (ƛ t) rewrite subst-exts≡id t = Eq.cong ƛ (id-subst-id t)
+  id-subst-id (t₁ $ t₂) rewrite id-subst-id t₁ | id-subst-id t₂ = refl

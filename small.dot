@@ -1,0 +1,23 @@
+digraph dependencies {
+    subgraph {
+    }
+    m2 [label=Subst];
+    m7 [label=Preservation];
+    m17 [label=Semantics];
+    m55 [label=Soundness];
+    m56 [label=Progress];
+    m67 [label=Tests];
+    m83 [label=Base];
+    m94 [label=Normalization];
+    m107 [label=Eval];
+    m2 -> m83;
+    m7 -> m17;
+    m17 -> m2;
+    m55 -> m7;
+    m55 -> m56;
+    m56 -> m17;
+    m67 -> m107;
+    m94 -> m55;
+    m107 -> m7;
+    m107 -> m56;
+}

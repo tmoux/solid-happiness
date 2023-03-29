@@ -8,7 +8,7 @@ open import Semantics
 open import Subst
 
 progress : ∀ T t →
-  ∅ ⊢ t ∈ T →
+  ⊢ t ∈ T →
   value t ⊎ (∃[ t' ] (t ~> t'))
 progress T (f $ x) (t-app f∈S⇒T x∈S) with (progress (_ ⇒ T) f f∈S⇒T)
 ... | inj₂ (f' , f~>f') = inj₂ (f' $ x , step-app1 f~>f')
