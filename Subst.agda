@@ -1,3 +1,5 @@
+-- {-# OPTIONS --allow-unsolved-metas #-}
+
 module Subst where
 
 open import Base
@@ -31,6 +33,7 @@ subst-zero M (S x)  =  var x
 
 _[_] : ∀ {Γ B} → Term (Γ , B) → Term Γ → Term Γ
 _[_] {Γ} {B} N M = subst {Γ , B} {Γ} (subst-zero M) N
+
 
 -- Renaming preserves typing.
 rename-preserves-typing : ∀ {Γ Δ T}
@@ -86,11 +89,11 @@ module IdSubst where
 
   -- If two substitutions are pointwise equal, then their substitutions are pointwise equal
   -- We use this mainly to get around using function extensionality.
-  subst-pointwise : ∀ {Γ} {σ₁ σ₂ : ∀ {A} → Γ ∋ A → Term Γ} →
+  subst-pointwise : ∀ {Γ Δ} {σ₁ σ₂ : ∀ {A} → Γ ∋ A → Term Δ} →
     (∀ {T} → (x : Γ ∋ T) → σ₁ x ≡ σ₂ x) →
     (∀ (t : Term Γ) → subst σ₁ t ≡ subst σ₂ t)
   subst-pointwise Hσ (var x) = Hσ x
-  subst-pointwise {Γ} {σ₁} {σ₂} Hσ (ƛ t) = Eq.cong ƛ (f t)
+  subst-pointwise {Γ} {Δ} {σ₁} {σ₂} Hσ (ƛ t) = Eq.cong ƛ (f t)
     where f : ∀ {A} →
               ∀ (t : Term (Γ , A)) → subst (exts σ₁) t ≡ subst (exts σ₂) t
           f = subst-pointwise (λ { Z → refl ; (S x) → Eq.cong (rename S_) (Hσ x)})
@@ -104,3 +107,35 @@ module IdSubst where
   id-subst-id (var x) = refl
   id-subst-id (ƛ t) rewrite subst-exts≡id t = Eq.cong ƛ (id-subst-id t)
   id-subst-id (t₁ $ t₂) rewrite id-subst-id t₁ | id-subst-id t₂ = refl
+
+module _ where
+  open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong)
+
+  -- subst-[] : ∀ {S} {Γ : Context} {σ : ∀ {A} → Γ ∋ A → Term Δ} → (t : Term (Γ , S)) →
+  --   subst (λ x → (exts σ) x [ v ]) t ≡ (subst (exts σ) t [ v ])
+  -- subst-[] (var x) = refl
+  -- subst-[] (ƛ t) rewrite subst-[] t = {!subst-[] t!}
+  -- subst-[] {σ = σ} (t₁ $ t₂) rewrite subst-[] {σ = σ} t₁ | subst-[] {σ = σ} t₂ = refl
+
+  -- subst (λ x → (exts σ) x [ v ]) = subst (exts σ) t [ v ]
+
+  -- Lemma: Composition of renaming is equal to renaming of composition.
+
+  -- Lemma: If renaming and substitution commute on variables, they commute on terms.
+
+  -- Composition of substitutions.
+  subst-comp : ∀ {Γ₁ Γ₂ Γ₃} →
+    (σ₁ : ∀ {A} → Γ₁ ∋ A → Term Γ₂) →
+    (σ₂ : ∀ {A} → Γ₂ ∋ A → Term Γ₃) →
+    ∀ t → subst σ₂ (subst σ₁ t) ≡ subst (λ x → subst σ₂ (σ₁ x)) t
+  subst-comp σ₁ σ₂ (var x) = refl
+  subst-comp {Γ₁} σ₁ σ₂ (ƛ t) rewrite subst-comp (exts σ₁) (exts σ₂) t = cong ƛ (IdSubst.subst-pointwise H t)
+    where H : ∀ {B T } → ∀ (x : (Γ₁ , B) ∋ T) → subst (exts σ₂ {B = B}) (exts σ₁ {B = B} x) ≡
+                                   exts (λ y → subst σ₂ (σ₁ y)) x
+          H Z = refl
+          H (S x) = {! rename-subst commute!}
+  subst-comp σ₁ σ₂ (t₁ $ t₂) rewrite subst-comp σ₁ σ₂ t₁ |
+                                     subst-comp σ₁ σ₂ t₂ = refl
+
+  --  ƛ (subst (λ x → subst (exts σ₂) (exts σ₁ x)) t) ≡
+  --  ƛ (subst (exts (λ x → subst σ₂ (σ₁ x))) t)

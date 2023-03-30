@@ -112,16 +112,20 @@ R-subst σ Hσ (t-lambda {Γ = Γ} {S = S} {T = T} {t = t} ⊢t) =
               ss'' = subst σ' t
               -- need to show
               -- subst (λ x → (exts σ) x [ v ]) = subst (exts σ) t [ v ]
+              --
+              -- t → subst (exts σ) t [ v ]
+              -- = subst (subst-zero v) (subst (exts σ) t)
+              -- = S1 (S2 t)
+              -- = subst (S1 ∙ S2) t
               ss'≡ss'' : ss' ≡ ss''
-              ss'≡ss'' = {!!}
+              ss'≡ss'' = subst-comp (exts σ) (subst-zero v) t
               Rss' : R T ss'
               Rss' = Eq.subst (λ z → R T z) (Eq.sym ss'≡ss'') (R-subst σ' {!!} ⊢t)
 
-              -- Rss' = Eq.subst (λ z → R T z) (id-subst-id ss') (R-subst {Γ = ∅} id-subst (λ ()) ⊢ss')
 
               Rss : R T ss
               Rss = R-multistep' ⊢ss ss~>ss' Rss'
-              in Rss
+              in {!!}
 
 
 -- As a corollary, all well-typed closed terms are in R_T.
