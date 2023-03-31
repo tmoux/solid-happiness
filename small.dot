@@ -2,22 +2,27 @@ digraph dependencies {
     subgraph {
     }
     m2 [label=Subst];
-    m7 [label=Preservation];
-    m17 [label=Semantics];
-    m55 [label=Soundness];
-    m56 [label=Progress];
-    m67 [label=Tests];
-    m83 [label=Base];
-    m94 [label=Normalization];
-    m107 [label=Eval];
-    m2 -> m83;
-    m7 -> m17;
-    m17 -> m2;
-    m55 -> m7;
-    m55 -> m56;
-    m56 -> m17;
-    m67 -> m107;
-    m94 -> m55;
-    m107 -> m7;
-    m107 -> m56;
+    m6 [label=SubstFacts];
+    m8 [label=Preservation];
+    m18 [label=Semantics];
+    m56 [label=Soundness];
+    m57 [label=Progress];
+    m68 [label=Tests];
+    m84 [label=Base];
+    m95 [label=Normalization];
+    m108 [label=Eval];
+    m114 [label=Sigma];
+    m2 -> m84;
+    m6 -> m114;
+    m8 -> m18;
+    m18 -> m2;
+    m56 -> m8;
+    m56 -> m57;
+    m57 -> m18;
+    m68 -> m108;
+    m95 -> m6;
+    m95 -> m56;
+    m108 -> m8;
+    m108 -> m57;
+    m114 -> m2;
 }

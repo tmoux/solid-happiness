@@ -1,13 +1,12 @@
 module Normalization where
 
-
 open import Data.Sum
 open import Data.Product
 open import Function.Equivalence
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_)
 
-open import Base hiding (S_)
-open import Subst
+open import Subst hiding (S_)
+open import SubstFacts
 open IdSubst
 open import Semantics
 open import Progress
@@ -31,6 +30,10 @@ R (A ⇒ B) f = (⊢ f ∈ A ⇒ B) × halts f × (∀ s → ⊢ s ∈ A → R A
 R-halts : ∀ {T t} → R T t → halts t
 R-halts {⊤} H = proj₂ H
 R-halts {T ⇒ T₁} H = proj₁ (proj₂ H)
+
+R-typ : ∀ {T t} → R T t → ⊢ t ∈ T
+R-typ {⊤} {t} H = proj₁ H
+R-typ {T ⇒ T₁} {t} H = proj₁ H
 
 
 step-preserves-halt : ∀ {t t'} → (t ~>* t') → (halts t → halts t') × (halts t' → halts t)
@@ -70,62 +73,63 @@ R-multistep' = {!!}
 
 R-subst : ∀ {Γ T t} →
   (σ : ∀ {A} → Γ ∋ A → CTerm) →
-  (∀ {A} → (x : Γ ∋ A) → ⊢ (σ x) ∈ A × value (σ x) × R A (σ x)) →
+  (∀ {A} → (x : Γ ∋ A) → value (σ x) × R A (σ x)) →
   Γ ⊢ t ∈ T →
   R T (subst σ t)
--- R-subst-id : ∀ {T t} →
---   ⊢ t ∈ T →
---   R T t
--- R-subst-id {T} {t} ⊢t = Eq.subst (λ z → R T z) (id-subst-id t) (R-subst {Γ = ∅} id-subst (λ ()) ⊢t)
-
-R-subst σ Hσ (t-var x) = proj₂ (proj₂ (Hσ x))
+R-subst σ Hσ (t-var x) = proj₂ (Hσ x)
 R-subst σ Hσ (t-app {S = S} {T = T} {f = f} {x = x} ⊢f ⊢x) =
   let Rf : R (S ⇒ T) (subst σ f)
       Rf = R-subst σ Hσ ⊢f
       Rx : R S (subst σ x)
       Rx = R-subst σ Hσ ⊢x
-  in proj₂ (proj₂ Rf) (subst σ x) (substs-lemma σ (λ x₁ → proj₁ (Hσ x₁)) ⊢x) Rx
+  in proj₂ (proj₂ Rf) (subst σ x) (substs-lemma σ (λ x₁ → R-typ (proj₂ (Hσ x₁))) ⊢x) Rx
 R-subst σ Hσ (t-lambda {Γ = Γ} {S = S} {T = T} {t = t} ⊢t) =
                    ⊢λ
                  , (ƛ (subst (exts σ) t) , ~>-refl , val-lambda (subst (exts σ) t))
                  , Hs
   where ⊢λ : ⊢ ƛ (subst (exts σ) t) ∈ S ⇒ T
-        ⊢λ = substs-lemma σ (λ x → proj₁ (Hσ x)) (t-lambda ⊢t)
+        ⊢λ = substs-lemma σ (λ x → R-typ (proj₂ (Hσ x))) (t-lambda ⊢t)
         Hs : (s : CTerm) → ⊢ s ∈ S → R S s → R T (ƛ (subst (exts σ) t) $ s)
         Hs s ⊢s Rs with R-halts Rs
-        ... | v , s~>*v , val-v =
-          let ⊢v : ⊢ v ∈ S
-              ⊢v = preservation-multi ⊢s s~>*v
-              ss : CTerm
-              ss = ƛ (subst (exts σ) t) $ s
-              ss' : CTerm
-              ss' = subst (exts σ) t [ v ]
-              ss~>ss' : ss ~>* ss'
-              ss~>ss' = ~>*-trans {y = ƛ (subst (exts σ) t) $ v} {! step congruence!} (~>→~>* (step-lambda val-v))
-              ⊢ss : ⊢ ss ∈ T
-              ⊢ss = t-app ⊢λ ⊢s
-              ⊢ss' : ⊢ ss' ∈ T
-              ⊢ss' = preservation-multi ⊢ss ss~>ss'
-              σ' : ∀ {A} → (Γ , S) ∋ A → CTerm
-              σ' x = (exts σ) x [ v ]
-              ss'' : CTerm
-              ss'' = subst σ' t
-              -- need to show
-              -- subst (λ x → (exts σ) x [ v ]) = subst (exts σ) t [ v ]
-              --
-              -- t → subst (exts σ) t [ v ]
-              -- = subst (subst-zero v) (subst (exts σ) t)
-              -- = S1 (S2 t)
-              -- = subst (S1 ∙ S2) t
-              ss'≡ss'' : ss' ≡ ss''
-              ss'≡ss'' = subst-comp (exts σ) (subst-zero v) t
-              Rss' : R T ss'
-              Rss' = Eq.subst (λ z → R T z) (Eq.sym ss'≡ss'') (R-subst σ' {!!} ⊢t)
+        ... | v , s~>*v , val-v = Rss
+          where
+          ⊢v : ⊢ v ∈ S
+          ⊢v = preservation-multi ⊢s s~>*v
+          ss : CTerm
+          ss = ƛ (subst (exts σ) t) $ s
+          ss' : CTerm
+          ss' = subst (exts σ) t [ v ]
+          ss~>ss' : ss ~>* ss'
+          ss~>ss' = ~>*-trans {y = ƛ (subst (exts σ) t) $ v} {! step congruence!} (~>→~>* (step-lambda val-v))
+          ⊢ss : ⊢ ss ∈ T
+          ⊢ss = t-app ⊢λ ⊢s
+          ⊢ss' : ⊢ ss' ∈ T
+          ⊢ss' = preservation-multi ⊢ss ss~>ss'
+          σ' : ∀ {A} → (Γ , S) ∋ A → CTerm
+          σ' x = (exts σ) x [ v ]
+          ss'' : CTerm
+          ss'' = subst σ' t
+          -- need to show
+          -- subst (λ x → (exts σ) x [ v ]) = subst (exts σ) t [ v ]
+          --
+          -- t → subst (exts σ) t [ v ]
+          -- = subst (subst-zero v) (subst (exts σ) t)
+          -- = S1 (S2 t)
+          -- = subst (S1 ∙ S2) t
+          ss'≡ss'' : ss' ≡ ss''
+          ss'≡ss'' = subst-comp (exts σ) (subst-zero v) t
+          HH₁ : ∀ {A} → (x : (Γ , S) ∋ A) → value (exts σ x [ v ])
+          HH₁ Z = val-v
+          HH₁ (_∋_.S x) = Eq.subst (λ z → value z) (Eq.sym (shift-subst (σ x) v)) (proj₁ (Hσ x))
+          HH₂ : ∀ {A} → (x : (Γ , S) ∋ A) → R A (exts σ x [ v ])
+          HH₂ Z = R-step s~>*v Rs
+          HH₂ (_∋_.S x) = Eq.subst (λ z → R _ z) (Eq.sym (shift-subst (σ x) v)) (proj₂ (Hσ x))
+               -- R-subst (subst-zero v) {!!} (weakening σ (λ z → proj₁ (Hσ z)) x)
+          Rss' : R T ss'
+          Rss' = Eq.subst (λ z → R T z) (Eq.sym ss'≡ss'') (R-subst σ' (λ x → (HH₁ x) , HH₂ x) ⊢t)
 
-
-              Rss : R T ss
-              Rss = R-multistep' ⊢ss ss~>ss' Rss'
-              in {!!}
+          Rss : R T ss
+          Rss = R-multistep' ⊢ss ss~>ss' Rss'
 
 
 -- As a corollary, all well-typed closed terms are in R_T.
