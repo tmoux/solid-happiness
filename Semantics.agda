@@ -34,10 +34,11 @@ data _~>_ : CTerm → CTerm → Set where
     t ~> t' →
     v $ t ~> v $ t'
 
--- Need to define transitive closure of ~>
+-- Need to define reflexive/transitive closure of ~>
 data _~>*_ : CTerm → CTerm → Set where
   ~>-refl : ∀ {t : CTerm} → t ~>* t
   ~>-trans : ∀ {x y z : CTerm} → x ~> y → y ~>* z → x ~>* z
+
 
 ~>→~>* : ∀ {x y} → x ~> y → x ~>* y
 ~>→~>* s = ~>-trans s ~>-refl
@@ -45,3 +46,7 @@ data _~>*_ : CTerm → CTerm → Set where
 ~>*-trans : ∀ {x y z} → x ~>* y → y ~>* z → x ~>* z
 ~>*-trans ~>-refl y~>*z = y~>*z
 ~>*-trans (~>-trans x a) y~>*z = ~>-trans x (~>*-trans a y~>*z)
+
+step-cong : ∀ {f s s'} → value f → s ~>* s' → f $ s ~>* f $ s'
+step-cong val-f ~>-refl = ~>-refl
+step-cong val-f (~>-trans s~>y y~>*s') = ~>-trans (step-app2 val-f s~>y) (step-cong val-f y~>*s')

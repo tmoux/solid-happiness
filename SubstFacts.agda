@@ -81,7 +81,7 @@ module _ where
   shift-subst : ∀ {Γ A} → (t : Term Γ) → (v : Term Γ) → rename {Δ = Γ , A} S_ t [ v ] ≡ t
   shift-subst {Γ} {A} t v =
       rename S_ t [ v ] ≡⟨ {!!} ⟩
-      subst σ t ≡⟨⟩ {!!}
+      ⟪ ren S_ ⟫ t [ v ] ≡⟨⟩ {!!}
     -- {!Eq.subst (λ z → subst σ t ≡ z) (IdSubst.id-subst-id t) !}
     where σ : ∀ {B} → (Γ ∋ B) → Term Γ
           σ x = (rename {Δ = Γ , A} S_ (var x)) [ v ]
