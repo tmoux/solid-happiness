@@ -50,3 +50,10 @@ data _~>*_ : CTerm → CTerm → Set where
 step-cong : ∀ {f s s'} → value f → s ~>* s' → f $ s ~>* f $ s'
 step-cong val-f ~>-refl = ~>-refl
 step-cong val-f (~>-trans s~>y y~>*s') = ~>-trans (step-app2 val-f s~>y) (step-cong val-f y~>*s')
+
+
+module _ where
+  open import Relation.Nullary.Negation
+
+  value-is-nf : ∀ {t v} → value v → ¬ (v ~> t)
+  value-is-nf {v = .(ƛ t)} (val-lambda t) ()

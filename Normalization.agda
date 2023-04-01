@@ -4,7 +4,6 @@ open import Data.Sum
 open import Data.Product
 open import Function.Equivalence
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_)
-open import Relation.Nullary.Negation
 open import Data.Empty
 
 open import Subst hiding (S_)
@@ -19,8 +18,6 @@ open import Soundness
 halts : CTerm → Set
 halts t = ∃[ t' ](t ~>* t' × value t')
 
-value-is-nf : ∀ {t v} → value v → ¬ (v ~> t)
-value-is-nf {v = .(ƛ t)} (val-lambda t) ()
 
 -- For a type T, the predicate (R T) represents the _reducibility candidates_
 -- of type T, i.e., the (closed) terms of type T that halt, and when halting terms
