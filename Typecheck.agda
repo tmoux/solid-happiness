@@ -40,7 +40,7 @@ typecheck (ƛ {A = A} t) with typecheck t
 ... | just B = just (A ⇒ B)
 ... | nothing = nothing
 typecheck (t₁ $ t₂) with typecheck t₁ | typecheck t₂
-... | just (A ⇒ B) | just C with A ≟ C
+... | just (A ⇒ B) | just C with C ≟ A
 ...   | no ¬p = nothing
 ...   | yes p = just B
 typecheck (t₁ $ t₂) | _ | _ = nothing
@@ -60,5 +60,6 @@ typecheck->⊢t {Γ} {t = ƛ {A = A} t} {T = T} H with typecheck t | inspect typ
 ... | just B | [ eq ] rewrite (sym (just-injective H)) = t-lambda (typecheck->⊢t eq)
 -- rewrite (sym (just-injective H)) = t-lambda (typecheck->⊢t {!!})
 typecheck->⊢t {Γ} {t = t₁ $ t₂} {T = T} H with typecheck t₁ | inspect typecheck t₁ | typecheck t₂ | inspect typecheck t₂
-... | just x | [ eq₁ ] | just x₁ | [ eq₂ ] = t-app (typecheck->⊢t {!typecheck->⊢t eq₁!}) (typecheck->⊢t eq₂)
-... | just x | [ eq ] | nothing | [ eq₁ ] = {!!}
+... | just (A ⇒ B) | [ eq₁ ] | just C | [ eq₂ ] with C ≟ A
+typecheck->⊢t {Γ} {t₁ $ t₂} {T = T} () | just (A ⇒ B) | [ eq₁ ] | just C | [ eq₂ ] | no ¬p
+... | yes p = t-app (subst (λ z → Γ ⊢ t₁ ∈ (A ⇒ z)) (just-injective H) (typecheck->⊢t eq₁)) (subst (λ z → Γ ⊢ t₂ ∈ z) p (typecheck->⊢t eq₂))

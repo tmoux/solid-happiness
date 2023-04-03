@@ -8,4 +8,5 @@ open import Preservation
 open import Soundness
 open import Eval
 open import Normalization
+open import Typecheck
 open import Tests
