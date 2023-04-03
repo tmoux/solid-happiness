@@ -31,34 +31,6 @@ module _ where
 
 
 
-  lem1 : ∀ {Γ Δ} {σ : Subst Γ Δ} → (t : Term Γ) →
-    ∀ {B} → ⟪ exts σ {B = B} ⟫ (rename S_ t) ≡ rename S_ (⟪ σ ⟫ t)
-  lem1 (var x) = refl
-  lem1 {σ = σ} (ƛ x) = begin
-    ⟪ exts σ ⟫ (ƛ (rename (ext S_) x)) ≡⟨⟩
-    subst (exts σ) (ƛ (rename (ext S_) x)) ≡⟨⟩ (
-    ƛ (subst (exts (exts σ)) (rename (ext S_) x)) ≡⟨⟩ {!rename (ext S_)!})
-  lem1 (x $ x₁) = {!!}
-
-  subst-renameS-commute : ∀ {Γ₁ Γ₂ Γ₃} {σ₁ : Subst Γ₁ Γ₂} {σ₂ : Subst Γ₂ Γ₃} → ∀ {A} {x : Γ₁ ∋ A} →
-    ∀ {B} → ⟪ exts σ₂ {B = B} ⟫ (rename S_ (σ₁ x)) ≡ rename S_ ((σ₁ >> σ₂) x)
-  subst-renameS-commute {σ₁ = σ₁} {x = x} = lem1 (σ₁ x)
-
-  -- Composition of substitutions.
-  subst-comp : ∀ {Γ₁ Γ₂ Γ₃} →
-    (σ₁ : Subst Γ₁ Γ₂) →
-    (σ₂ : Subst Γ₂ Γ₃) →
-    ∀ t → ⟪ σ₂ ⟫ (⟪ σ₁ ⟫ t) ≡ ⟪ σ₁ >> σ₂ ⟫ t
-  subst-comp σ₁ σ₂ (var x) = refl
-  subst-comp {Γ₁} σ₁ σ₂ (ƛ t) rewrite subst-comp (exts σ₁) (exts σ₂) t = cong ƛ (cong-sub H t)
-    where H : ∀ {B T } → ∀ (x : (Γ₁ , B) ∋ T) → ⟪ exts σ₂ {B = B} ⟫ (exts σ₁ {B = B} x) ≡
-                                   exts (σ₁ >> σ₂) x
-          H Z = refl
-          H (S x) = subst-renameS-commute {σ₁ = σ₁}
-  subst-comp σ₁ σ₂ (t₁ $ t₂) rewrite subst-comp σ₁ σ₂ t₁ |
-                                     subst-comp σ₁ σ₂ t₂ = refl
-
-
 
   -- Substuting after shifting should do nothing.
   shift-subst : ∀ {Γ A} → (t : Term Γ) → (v : Term Γ) → subst (subst-zero {B = A} v) (rename {Δ = Γ , A} S_ t) ≡ t

@@ -1,10 +1,8 @@
--- {-# OPTIONS --allow-unsolved-metas #-}
-
 module Sigma where
 
 open import Level
 open import Axiom.Extensionality.Propositional
-open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂; cong-app)
+open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂; cong-app; trans)
 open Eq.≡-Reasoning
 open import Function using (_∘_)
 
@@ -117,24 +115,65 @@ compose-rename {Γ} {Δ} {Σ} {ƛ {A = A} N} {ρ} {ρ′} = cong ƛ G
       ∎
 compose-rename {M = L $ M} = cong₂ _$_ compose-rename compose-rename
 
-commute-subst-rename : ∀ {Γ Δ} {M : Term Γ} {σ : Subst Γ Δ}
-                        → (∀ {A} (x : Γ ∋ A) → Δ ⊢ σ x ∈ A) →
-                        {ρ : ∀ {Γ A} → Rename Γ (Γ , A)}
-    --  → (∀ {A C} {x : Γ ∋ C} → exts σ {B = A} (ρ {Γ} {A} x) ≡ rename (ρ {Γ = Δ}) (σ x))
-     → ∀ {A} → subst (exts σ {B = A}) (rename ρ M) ≡ rename ρ (subst σ M)
-commute-subst-rename {M = var x} = {!!}
-commute-subst-rename {Γ}{Δ}{ƛ {A = A} M}{σ} Hσ {ρ} {B} =
-  cong ƛ {!commute-subst-rename {σ = exts σ} {ρ = ρ'}!}
+ren-ren-fusion : ∀ {Γ Δ Θ} (ρ : Rename Δ Γ) (ρ′ : Rename Θ Δ) (M : Term Θ) →
+  rename ρ (rename ρ′ M) ≡ rename (ρ ∘ ρ′) M
+ren-ren-fusion = λ ρ ρ′ M → compose-rename
+sub-ren-fusion : ∀ {Γ Δ Θ} (σ : Subst Δ Γ) (ρ : Rename Θ Δ) (M : Term Θ) →
+  subst σ (rename ρ M) ≡ subst (σ ∘ ρ) M
+sub-ren-fusion σ ρ (var x) = refl
+sub-ren-fusion σ ρ (ƛ M) = cong ƛ (trans (sub-ren-fusion (exts σ) (ext ρ) M) G)
   where
-  ρ' : ∀ {A Γ} → Rename Γ (Γ , A)
-  ρ' {A} {∅} = λ ()
-  ρ' {A} {Γ , B} = {!!}
+  G : subst (λ x → exts σ (ext ρ x)) M ≡
+      subst (exts (λ x → σ (ρ x))) M
+  G = cong-sub (λ { Z → refl ; (S x) → refl}) M
+sub-ren-fusion σ ρ (M₁ $ M₂) = cong₂ _$_ (sub-ren-fusion σ ρ M₁) (sub-ren-fusion σ ρ M₂)
 
-commute-subst-rename {M = N₁ $ N₂} = {!!}
--- commute-subst-rename {M = var x} H = H
--- commute-subst-rename {Γ} {Δ} {M = ƛ {A = A} N} {σ} {ρ} {B} H = cong ƛ {!commute-subst-rename ?!}
---   where
---    ρ' : ∀ {A Γ} → Rename Γ (Γ , A)
---    ρ' {A} {∅} = λ ()
---    ρ' {A} {Γ , B} = {!ext ?!}
--- commute-subst-rename {M = N₁ $ N₂} {ρ = ρ} H = cong₂ _$_ (commute-subst-rename {M = N₁} {ρ = ρ} H) (commute-subst-rename {M = N₂} {ρ = ρ} H)
+ren-sub-fusion : ∀ {Γ Δ Θ} (σ : Subst Θ Δ) (ρ : Rename Δ Γ) (M : Term Θ) →
+  rename ρ (subst σ M) ≡ subst (rename ρ ∘ σ) M
+ren-sub-fusion σ ρ (var x) = refl
+ren-sub-fusion σ ρ (ƛ M) = cong ƛ (trans (ren-sub-fusion (exts σ) (ext ρ) M) G)
+  where
+  G : subst (rename (ext ρ) ∘ exts σ) M ≡
+      subst (exts (rename ρ ∘ σ)) M
+  G = cong-sub (λ { Z → refl ; (S x) → begin
+    (rename (ext ρ) ∘ exts σ) (S x) ≡⟨⟩ 
+    rename (ext ρ) (exts σ (S x)) ≡⟨⟩ 
+    rename (ext ρ) (rename S_ (σ x)) ≡⟨ compose-rename ⟩ 
+    rename ((ext ρ) ∘ S_) (σ x) ≡⟨⟩ 
+    rename (λ x → S ρ x) (σ x) ≡⟨⟩ 
+    rename (S_ ∘ ρ) (σ x) ≡⟨ Eq.sym compose-rename ⟩
+    rename S_ (rename ρ (σ x)) ≡⟨⟩ 
+    rename S_ ((rename ρ ∘ σ) x) ∎})
+    M
+
+ren-sub-fusion σ ρ (M₁ $ M₂) = cong₂ _$_ (ren-sub-fusion σ ρ M₁) (ren-sub-fusion σ ρ M₂)
+
+
+commute-subst-rename : ∀ {Γ Δ} {M : Term Γ} {σ : Subst Γ Δ}
+                        {ρ : ∀ {Γ A} → Rename Γ (Γ , A)}
+     → (∀ {A C} {x : Γ ∋ C} → exts σ {B = A} (ρ {Γ} {A} x) ≡ rename (ρ {Γ = Δ}) (σ x))
+     → ∀ {A} → subst (exts σ {B = A}) (rename ρ M) ≡ rename ρ (subst σ M)
+commute-subst-rename {M = M} {σ = σ} {ρ = ρ} H = begin
+  subst (exts σ) (rename ρ M) ≡⟨ sub-ren-fusion (exts σ) ρ M ⟩
+  subst ((exts σ) ∘ ρ) M ≡⟨ cong-sub (λ x → H) M ⟩
+  subst (rename ρ ∘ σ) M ≡⟨ Eq.sym (ren-sub-fusion σ ρ M) ⟩ 
+  rename ρ (subst σ M) ∎
+
+
+subst-renameS-commute : ∀ {Γ₁ Γ₂ Γ₃} {σ₁ : Subst Γ₁ Γ₂} {σ₂ : Subst Γ₂ Γ₃} → ∀ {A} {x : Γ₁ ∋ A} →
+    ∀ {B} → ⟪ exts σ₂ {B = B} ⟫ (rename S_ (σ₁ x)) ≡ rename S_ ((σ₁ >> σ₂) x)
+subst-renameS-commute {σ₁ = σ₁} {σ₂ = σ₂} {x = x} = commute-subst-rename {M = σ₁ x} {σ = σ₂} {ρ = S_} refl
+
+-- Composition of substitutions.
+subst-comp : ∀ {Γ₁ Γ₂ Γ₃} →
+  (σ₁ : Subst Γ₁ Γ₂) →
+  (σ₂ : Subst Γ₂ Γ₃) →
+  ∀ t → ⟪ σ₂ ⟫ (⟪ σ₁ ⟫ t) ≡ ⟪ σ₁ >> σ₂ ⟫ t
+subst-comp σ₁ σ₂ (var x) = refl
+subst-comp {Γ₁} σ₁ σ₂ (ƛ t) rewrite subst-comp (exts σ₁) (exts σ₂) t = cong ƛ (cong-sub H t)
+  where H : ∀ {B T } → ∀ (x : (Γ₁ , B) ∋ T) → ⟪ exts σ₂ {B = B} ⟫ (exts σ₁ {B = B} x) ≡
+                                 exts (σ₁ >> σ₂) x
+        H Z = refl
+        H (S x) = subst-renameS-commute {σ₁ = σ₁}
+subst-comp σ₁ σ₂ (t₁ $ t₂) rewrite subst-comp σ₁ σ₂ t₁ |
+                                   subst-comp σ₁ σ₂ t₂ = refl
