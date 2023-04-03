@@ -36,14 +36,14 @@ _[_] {Γ} {B} N M = subst {Γ , B} {Γ} (subst-zero M) N
 
 -- Renaming preserves typing.
 rename-preserves-typing : ∀ {Γ Δ T}
-  → (σ : ∀ {A} → Γ ∋ A → Δ ∋ A)
+  → (ρ : ∀ {A} → Γ ∋ A → Δ ∋ A)
   → (t : Term Γ)
   → Γ ⊢ t ∈ T
-  → Δ ⊢ rename σ t ∈ T
-rename-preserves-typing σ (var x) (t-var .x) = t-var (σ x)
-rename-preserves-typing σ (ƛ t) (t-lambda H) = t-lambda (rename-preserves-typing (ext σ) t H)
-rename-preserves-typing σ (t $ t₁) (t-app H H₁) = t-app (rename-preserves-typing σ t H)
-                                                    (rename-preserves-typing σ t₁ H₁)
+  → Δ ⊢ rename ρ t ∈ T
+rename-preserves-typing ρ (var x) (t-var .x) = t-var (ρ x)
+rename-preserves-typing ρ (ƛ t) (t-lambda H) = t-lambda (rename-preserves-typing (ext ρ) t H)
+rename-preserves-typing ρ (t $ t₁) (t-app H H₁) = t-app (rename-preserves-typing ρ t H)
+                                                    (rename-preserves-typing ρ t₁ H₁)
 
 weakening : ∀ {Γ Δ A T} → (σ : ∀ {A} → Γ ∋ A → Term Δ)
   → (∀ {A} (x : Γ ∋ A) → Δ ⊢ σ x ∈ A)

@@ -11,9 +11,7 @@ open import SubstFacts
 open IdSubst
 open import Semantics
 open import Deterministic
-open import Progress
 open import Preservation
-open import Soundness
 
 halts : CTerm → Set
 halts t = ∃[ t' ](t ~>* t' × value t')
