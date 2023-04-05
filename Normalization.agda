@@ -66,6 +66,7 @@ R-multistep' : ∀ {T t t'} → ⊢ t ∈ T → (t ~>* t') → R T t' → R T t
 R-multistep' ⊢t ~>-refl H = H
 R-multistep' ⊢t (~>-trans t~>y y~>*t') H = R-step' ⊢t t~>y (R-multistep' (preservation ⊢t t~>y) y~>*t' H)
 
+
 R-subst : ∀ {Γ T t} →
   (σ : ∀ {A} → Γ ∋ A → CTerm) →
   (∀ {A} → (x : Γ ∋ A) → value (σ x) × R A (σ x)) →

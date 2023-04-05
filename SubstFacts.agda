@@ -1,5 +1,3 @@
-{-# OPTIONS --allow-unsolved-metas #-}
-
 module SubstFacts where
 
 open import Subst
@@ -26,19 +24,17 @@ module IdSubst where
 
 
 module _ where
-  open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
-  open Eq.≡-Reasoning
+    open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂)
+    open Eq.≡-Reasoning
 
 
-
-
-  -- Substuting after shifting should do nothing.
-  shift-subst : ∀ {Γ A} → (t : Term Γ) → (v : Term Γ) → subst (subst-zero {B = A} v) (rename {Δ = Γ , A} S_ t) ≡ t
-  shift-subst {Γ} {A} t v = begin
-    rename S_ t [ v ] ≡⟨⟩
-    (subst (subst-zero {B = A} v) (rename S_ t) ≡⟨ cong (λ z → (subst (subst-zero v) z)) (rename-subst-ren {M = t}) ⟩
-    subst (subst-zero {B = A} v) (subst (ren S_) t) ≡⟨⟩ (
-    ⟪ subst-zero {B = A} v ⟫ (⟪ (ren S_) ⟫ t) ≡⟨ subst-comp _ _ t ⟩ 
-    ⟪ ren S_ >> subst-zero {B = A} v ⟫ t ≡⟨ cong-sub (λ x → refl) t ⟩
-    ⟪ IdSubst.id-subst ⟫ t ≡⟨ IdSubst.id-subst-id t ⟩
-    t ∎))
+    -- Substuting after shifting should do nothing.
+    shift-subst : ∀ {Γ A} → (t : Term Γ) → (v : Term Γ) → subst (subst-zero {B = A} v) (rename {Δ = Γ , A} S_ t) ≡ t
+    shift-subst {Γ} {A} t v = begin
+      rename S_ t [ v ] ≡⟨⟩
+      (subst (subst-zero {B = A} v) (rename S_ t) ≡⟨ cong (λ z → (subst (subst-zero v) z)) (rename-subst-ren {M = t}) ⟩
+      subst (subst-zero {B = A} v) (subst (ren S_) t) ≡⟨⟩ (
+      ⟪ subst-zero {B = A} v ⟫ (⟪ (ren S_) ⟫ t) ≡⟨ subst-comp _ _ t ⟩
+      ⟪ ren S_ >> subst-zero {B = A} v ⟫ t ≡⟨ cong-sub (λ x → refl) t ⟩
+      ⟪ IdSubst.id-subst ⟫ t ≡⟨ IdSubst.id-subst-id t ⟩
+      t ∎))

@@ -2,11 +2,14 @@ module Tests where
 
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Maybe
+open import Data.Product
 
 open import Base
 open import Semantics
 open import Eval
 open import Typecheck
+open import Normalization
+
 
 ex-id : CTerm
 ex-id = ƛ {A = ⊤} (var Z)
@@ -34,3 +37,7 @@ ex-typecheck = refl
 
 ex2-typecheck : typecheck ex2-id ≡ just (⊤ ⇒ ⊤)
 ex2-typecheck = refl
+
+
+_ : ex2-id ~>* ex-id
+_ = proj₁ (proj₂ (normalizing ex2-id-T))

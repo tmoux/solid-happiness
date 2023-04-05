@@ -1,21 +1,11 @@
 module Sigma where
 
-open import Level
-open import Axiom.Extensionality.Propositional
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂; cong-app; trans)
 open Eq.≡-Reasoning
 open import Function using (_∘_)
 
 open import Subst
 
-postulate
-  extensionality : ∀ {a b : Level} → Extensionality a b
-
-
--- Prove some things about the σ-algebra.
--- Might invert the dependencies to make Subst depend on this.
--- I want to keep this to the "pure" facts about substitution, renaming, etc,
--- and leave the specific substitution lemmas to SubstFacts
 -- Most of this stuff is adapted from https://plfa.github.io/Substitution/
 
 Rename : Context → Context → Set
@@ -50,18 +40,18 @@ cong-sub {Γ} {Δ} {σ₁} {σ₂} Hσ (ƛ t) = Eq.cong ƛ (f t)
 cong-sub Hσ (t₁ $ t₂) rewrite cong-sub Hσ t₁ | cong-sub Hσ t₂ = refl
 
 cong-ext : ∀ {Γ Δ} {ρ ρ′ : Rename Γ Δ} {B}
-   → (∀ {A} → ρ ≡ ρ′ {A})
-   → ∀ {A} → ext ρ {B = B} ≡ ext ρ′ {A}
-cong-ext {Γ} {Δ} {ρ} {ρ′} {B} rr {A} = extensionality λ x → lemma {x}
+   → (∀ {A x} → ρ x ≡ ρ′ {A} x)
+   → ∀ {A x} → ext ρ {B = B} x ≡ ext ρ′ {A} x
+cong-ext {Γ} {Δ} {ρ} {ρ′} {B} rr {A} {x} = lemma {x}
     where
-    lemma : ∀{x : (Γ , B) ∋ A} → ext ρ x ≡ ext ρ′ x
+    lemma : ∀ {x : (Γ , B) ∋ A} → ext ρ x ≡ ext ρ′ x
     lemma {Z} = refl
-    lemma {S y} = cong S_ (cong-app rr y)
+    lemma {S y} = cong S_ rr
 
 cong-rename : ∀ {Γ Δ} → {ρ ρ' : Rename Γ Δ} {M : Term Γ} →
-  (∀ {A} → ρ {A = A} ≡ ρ' {A = A}) →
+  (∀ {A x } → ρ {A = A} x ≡ ρ' {A = A} x) →
   rename ρ M ≡ rename ρ' M
-cong-rename {ρ = ρ} {ρ' = ρ'} {M = var x} H = cong (λ z → var (z x)) H
+cong-rename {ρ = ρ} {ρ' = ρ'} {M = var x} H = cong var H
 cong-rename {ρ = ρ} {ρ' = ρ'} {M = ƛ M} H = cong ƛ (cong-rename (cong-ext H))
 cong-rename {ρ = ρ} {ρ' = ρ'} {M = N₁ $ N₂} H = cong₂ _$_ (cong-rename H) (cong-rename H)
 
@@ -73,8 +63,8 @@ module _ {Γ Δ : Context} where
 
 
 ren-ext : ∀ {Γ Δ}{B C : Typ} {ρ : Rename Γ Δ}
-        → ren (ext ρ {B = B}) ≡ exts (ren ρ) {C}
-ren-ext {Γ} {Δ} {B} {C} {ρ} = extensionality λ x → lemma {x = x}
+        → ∀ {x} → ren (ext ρ {B = B}) x ≡ exts (ren ρ) {C} x
+ren-ext {Γ} {Δ} {B} {C} {ρ} {x} = lemma {x = x}
   where
   lemma : ∀ {x : (Γ , B) ∋ C} → (ren (ext ρ)) x ≡ exts (ren ρ) x
   lemma {x = Z} = refl
@@ -85,15 +75,15 @@ rename-subst-ren : ∀ {Γ Δ : Context} {M : Term Γ} {ρ : Rename Γ Δ} →
 rename-subst-ren {M = var x} {ρ = ρ} = refl
 rename-subst-ren {M = ƛ N} {ρ = ρ} = begin
     ƛ (rename (ext ρ) N) ≡⟨ cong ƛ (rename-subst-ren {M = N} {ρ = ext ρ}) ⟩
-    ƛ (⟪ ren (ext ρ) ⟫ N) ≡⟨ cong ƛ (cong-sub (λ x → cong (λ z → z x) ren-ext) N) ⟩
+    ƛ (⟪ ren (ext ρ) ⟫ N) ≡⟨ cong ƛ (cong-sub (λ x → ren-ext {x = x}) N) ⟩
     ƛ (⟪ exts (ren ρ) ⟫ N) ≡⟨⟩
     ⟪ ren ρ ⟫ (ƛ N) ∎
 rename-subst-ren {M = N₁ $ N₂} {ρ = ρ} = cong₂ _$_ rename-subst-ren rename-subst-ren
 
 
 compose-ext : ∀{Γ Δ Σ} {ρ : Rename Δ Σ} {ρ′ : Rename Γ Δ} {A B}
-            → ((ext ρ) ∘ (ext ρ′)) ≡ ext (ρ ∘ ρ′) {B} {A}
-compose-ext = extensionality λ x → lemma {x = x}
+            → ∀ {x} → ((ext ρ) ∘ (ext ρ′)) x ≡ ext (ρ ∘ ρ′) {B} {A} x
+compose-ext {x = x} = lemma {x = x}
   where
   lemma : ∀{Γ Δ Σ}{ρ : Rename Δ Σ} {ρ′ : Rename Γ Δ} {A B} {x : (Γ , B) ∋ A}
               → ((ext ρ) ∘ (ext ρ′)) x ≡ ext (ρ ∘ ρ′) x
@@ -145,7 +135,6 @@ ren-sub-fusion σ ρ (ƛ M) = cong ƛ (trans (ren-sub-fusion (exts σ) (ext ρ) 
     rename S_ (rename ρ (σ x)) ≡⟨⟩ 
     rename S_ ((rename ρ ∘ σ) x) ∎})
     M
-
 ren-sub-fusion σ ρ (M₁ $ M₂) = cong₂ _$_ (ren-sub-fusion σ ρ M₁) (ren-sub-fusion σ ρ M₂)
 
 
