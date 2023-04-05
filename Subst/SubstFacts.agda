@@ -1,7 +1,8 @@
-module SubstFacts where
+module Subst.SubstFacts where
 
-open import Subst
-open import Sigma
+open import Base
+open import Subst.Sigma
+open import Subst.SigmaProperties
 
 module IdSubst where
   open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl)

@@ -4,7 +4,7 @@ We prove standard type soundness results (progress and preservation),
 decidability of typechecking,
 and strong normalization.
 
-See `small.dot` for a dependency graph.
+See `small.pdf` for a dependency graph.
 
 Although the STLC seems very simple, proving its main theorems is an excellent way to understand the techniques
 used to prove properties of more complicated languages.

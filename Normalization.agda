@@ -6,10 +6,9 @@ open import Function.Equivalence
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_)
 open import Data.Empty
 
-open import Subst hiding (S_)
-open import Sigma
-open import SubstFacts
-open IdSubst
+open import Base hiding (S_)
+open import Subst
+open Subst.IdSubst
 open import Semantics
 open import Deterministic
 open import Preservation

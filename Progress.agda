@@ -4,8 +4,8 @@ open import Data.Sum
 open import Data.Product
 
 open import Base
-open import Semantics
 open import Subst
+open import Semantics
 
 progress : ∀ T t →
   ⊢ t ∈ T →

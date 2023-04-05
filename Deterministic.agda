@@ -3,7 +3,8 @@ module Deterministic where
 open import Data.Empty
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl)
 
-open import Subst hiding (S_)
+open import Base
+open import Subst
 open import Semantics
 
 

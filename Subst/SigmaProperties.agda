@@ -1,29 +1,13 @@
-module Sigma where
+module Subst.SigmaProperties where
 
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_; refl; cong; cong₂; cong-app; trans)
 open Eq.≡-Reasoning
 open import Function using (_∘_)
 
-open import Subst
 
--- Most of this stuff is adapted from https://plfa.github.io/Substitution/
+open import Base
+open import Subst.Sigma
 
-Rename : Context → Context → Set
-Rename Γ Δ = ∀ {A} → Γ ∋ A → Δ ∋ A
-
-Subst : Context → Context → Set
-Subst Γ Δ = ∀ {A} → Γ ∋ A → Term Δ
-
-ids : ∀ {Γ} → Subst Γ Γ
-ids x = var x
-
-⟪_⟫ : ∀ {Γ Δ} → Subst Γ Δ → Term Γ → Term Δ
-⟪_⟫ = subst
-
--- Composition of substitutions
-infixr 6 _>>_
-_>>_ : ∀ {Γ Δ Σ} → Subst Γ Δ → Subst Δ Σ → Subst Γ Σ
-σ₁ >> σ₂ = ⟪ σ₂ ⟫ ∘ σ₁
 
 ---------------------
 -- Congruences
@@ -41,7 +25,7 @@ cong-sub Hσ (t₁ $ t₂) rewrite cong-sub Hσ t₁ | cong-sub Hσ t₂ = refl
 
 cong-ext : ∀ {Γ Δ} {ρ ρ′ : Rename Γ Δ} {B}
    → (∀ {A x} → ρ x ≡ ρ′ {A} x)
-   → ∀ {A x} → ext ρ {B = B} x ≡ ext ρ′ {A} x
+   → ∀ {A x} → ext ρ {B} x ≡ ext ρ′ x
 cong-ext {Γ} {Δ} {ρ} {ρ′} {B} rr {A} {x} = lemma {x}
     where
     lemma : ∀ {x : (Γ , B) ∋ A} → ext ρ x ≡ ext ρ′ x
@@ -63,7 +47,7 @@ module _ {Γ Δ : Context} where
 
 
 ren-ext : ∀ {Γ Δ}{B C : Typ} {ρ : Rename Γ Δ}
-        → ∀ {x} → ren (ext ρ {B = B}) x ≡ exts (ren ρ) {C} x
+        → ∀ {x} → ren (ext ρ {B = B}) x ≡ exts (ren ρ) x
 ren-ext {Γ} {Δ} {B} {C} {ρ} {x} = lemma {x = x}
   where
   lemma : ∀ {x : (Γ , B) ∋ C} → (ren (ext ρ)) x ≡ exts (ren ρ) x
@@ -126,13 +110,13 @@ ren-sub-fusion σ ρ (ƛ M) = cong ƛ (trans (ren-sub-fusion (exts σ) (ext ρ) 
   G : subst (rename (ext ρ) ∘ exts σ) M ≡
       subst (exts (rename ρ ∘ σ)) M
   G = cong-sub (λ { Z → refl ; (S x) → begin
-    (rename (ext ρ) ∘ exts σ) (S x) ≡⟨⟩ 
-    rename (ext ρ) (exts σ (S x)) ≡⟨⟩ 
-    rename (ext ρ) (rename S_ (σ x)) ≡⟨ compose-rename ⟩ 
-    rename ((ext ρ) ∘ S_) (σ x) ≡⟨⟩ 
-    rename (λ x → S ρ x) (σ x) ≡⟨⟩ 
+    (rename (ext ρ) ∘ exts σ) (S x) ≡⟨⟩
+    rename (ext ρ) (exts σ (S x)) ≡⟨⟩
+    rename (ext ρ) (rename S_ (σ x)) ≡⟨ compose-rename ⟩
+    rename ((ext ρ) ∘ S_) (σ x) ≡⟨⟩
+    rename (λ x → S ρ x) (σ x) ≡⟨⟩
     rename (S_ ∘ ρ) (σ x) ≡⟨ Eq.sym compose-rename ⟩
-    rename S_ (rename ρ (σ x)) ≡⟨⟩ 
+    rename S_ (rename ρ (σ x)) ≡⟨⟩
     rename S_ ((rename ρ ∘ σ) x) ∎})
     M
 ren-sub-fusion σ ρ (M₁ $ M₂) = cong₂ _$_ (ren-sub-fusion σ ρ M₁) (ren-sub-fusion σ ρ M₂)
@@ -145,7 +129,7 @@ commute-subst-rename : ∀ {Γ Δ} {M : Term Γ} {σ : Subst Γ Δ}
 commute-subst-rename {M = M} {σ = σ} {ρ = ρ} H = begin
   subst (exts σ) (rename ρ M) ≡⟨ sub-ren-fusion (exts σ) ρ M ⟩
   subst ((exts σ) ∘ ρ) M ≡⟨ cong-sub (λ x → H) M ⟩
-  subst (rename ρ ∘ σ) M ≡⟨ Eq.sym (ren-sub-fusion σ ρ M) ⟩ 
+  subst (rename ρ ∘ σ) M ≡⟨ Eq.sym (ren-sub-fusion σ ρ M) ⟩
   rename ρ (subst σ M) ∎
 
 
