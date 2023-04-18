@@ -10,7 +10,6 @@ open import Eval
 open import Typecheck
 open import Normalization
 
-
 ex-id : CTerm
 ex-id = ƛ {A = ⊤} (var Z)
 

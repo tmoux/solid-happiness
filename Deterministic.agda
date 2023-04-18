@@ -9,7 +9,7 @@ open import Semantics
 
 
 -- A very fun and interesting proof!
-~>-deterministic : ∀ {s t₁ t₂} →
+~>-deterministic : ∀ {Γ} {s t₁ t₂ : Term Γ} →
   s ~> t₁ →
   s ~> t₂ →
   t₁ ≡ t₂

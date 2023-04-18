@@ -26,5 +26,5 @@ soundness : ∀ {t t' T} →
 soundness {t} {.t} {T} Ht ~>-refl (is-stuck ¬nf ¬val) with progress T t Ht
 ... | inj₁ val-t = ¬val val-t
 ... | inj₂ t'-step = ¬nf t'-step
-soundness {t} {t'} {T} Ht (~>-trans {.t} {y} {.t'} t~>y y~>*t') =
+soundness {t} {t'} {T} Ht (~>-trans {_} {.t} {y} {.t'} t~>y y~>*t') =
   soundness (preservation Ht t~>y) y~>*t'
