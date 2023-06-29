@@ -7,6 +7,9 @@ open import Subst
 data value : {Γ : Context} → Term Γ → Set where
   val-lambda : ∀ {Γ A} → (t : Term (Γ , A)) → value (ƛ {Γ} {A} t)
 
+cvalue : CTerm → Set
+cvalue = value
+
 infix 15 _~>_ _~>*_
 data _~>_ : {Γ : Context} → Term Γ → Term Γ → Set where
   step-lambda : ∀ {Γ A v} {t : Term (Γ , A)} →
@@ -34,7 +37,7 @@ data _~>_ : {Γ : Context} → Term Γ → Term Γ → Set where
 --     t ~> t' →
 --     v $ t ~> v $ t'
 
--- Need to define reflexive/transitive closure of ~>
+-- reflexive/transitive closure of ~>
 data _~>*_ : {Γ : Context} → Term Γ → Term Γ → Set where
   ~>-refl : ∀ {Γ} {t : Term Γ} → t ~>* t
   ~>-trans : ∀ {Γ} {x y z : Term Γ} → x ~> y → y ~>* z → x ~>* z

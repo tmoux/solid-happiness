@@ -2,7 +2,7 @@ Let's understand the Simply-typed lambda calculus (STLC) through formalization i
 
 We prove standard type soundness results (progress and preservation), 
 decidability of typechecking,
-and strong normalization.
+and normalization.
 
 See `small.pdf` for a dependency graph.
 

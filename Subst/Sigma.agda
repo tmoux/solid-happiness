@@ -15,6 +15,11 @@ Subst Γ Δ = ∀ {A} → Γ ∋ A → Term Δ
 ids : ∀ {Γ} → Subst Γ Γ
 ids x = var x
 
+module _ {Γ Δ : Context} where
+
+  ren : Rename Γ Δ → Subst Γ Δ
+  ren ρ x = ids (ρ x)
+
 
 
 ext : ∀ {Γ Δ} → Rename Γ Δ → ∀ {B} → Rename (Γ , B) (Δ , B)
@@ -48,6 +53,9 @@ _[_] {Γ} {B} N M = subst {Γ , B} {Γ} (subst-zero M) N
 ⟪_⟫ : ∀ {Γ Δ} → Subst Γ Δ → Term Γ → Term Δ
 ⟪_⟫ = subst
 
+
+weaken : ∀ {Γ A} → Term Γ → Term (Γ , A)
+weaken {Γ} {A} = subst (ren S_)
 -- Composition of substitutions
 infixr 6 _>>_
 _>>_ : ∀ {Γ Δ Σ} → Subst Γ Δ → Subst Δ Σ → Subst Γ Σ

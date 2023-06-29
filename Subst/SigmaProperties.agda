@@ -39,10 +39,6 @@ cong-rename {ρ = ρ} {ρ' = ρ'} {M = var x} H = cong var H
 cong-rename {ρ = ρ} {ρ' = ρ'} {M = ƛ M} H = cong ƛ (cong-rename (cong-ext H))
 cong-rename {ρ = ρ} {ρ' = ρ'} {M = N₁ $ N₂} H = cong₂ _$_ (cong-rename H) (cong-rename H)
 
-module _ {Γ Δ : Context} where
-
-  ren : Rename Γ Δ → Subst Γ Δ
-  ren ρ x = ids (ρ x)
 
 
 

@@ -46,5 +46,5 @@ subst-lemma : ∀ {Γ A T t v} →
 subst-lemma {Γ} {B} {T} {t} {v} H1 H2 =
   substs-lemma (subst-zero v) (subst-zero-preserves-types H2) H1
 
-
-
+weaken-l : ∀ {Γ A t T} → Γ ⊢ t ∈ T → (Γ , A) ⊢ weaken t ∈ T
+weaken-l {Γ} {A} {t} {T} ⊢t = substs-lemma (ren S_) (λ {x → t-var (S x)}) ⊢t

@@ -1,6 +1,5 @@
 module Soundness where
 
-
 open import Relation.Nullary.Negation
 open import Data.Sum
 open import Data.Product
